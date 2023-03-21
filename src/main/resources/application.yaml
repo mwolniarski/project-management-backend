@@ -1,0 +1,32 @@
+spring:
+  jpa:
+    spring.jpa.database-platform: org.hibernate.dialect.H2Dialect
+    show-sql: true
+  mail:
+    host: mail.instacloud.biz
+    port: 587
+    username: as8
+    password: cx3aJ8KbEK
+
+    properties:
+      mail:
+        smtp:
+          ssl:
+            trust: "*"
+          auth: true
+          starttls:
+            enable: true
+          connectiontimeout: 5000
+          timeout: 3000
+          writetimeout: 5000
+  mvc:
+    pathmatch:
+      matching-strategy: ANT_PATH_MATCHER
+
+enable-email-confirmation: false
+
+jwt:
+  expirationTime: 3600000
+  secret: secret
+server:
+  port: 8080
