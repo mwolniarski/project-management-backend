@@ -1,0 +1,17 @@
+spring:
+  mail:
+    host: h24.seohost.pl
+    port: 465
+
+  datasource:
+    url:  jdbc:mariadb://projectain.com/srv53677_app
+    driver-class-name: org.mariadb.jdbc.Driver
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MariaDB103Dialect
+
+enable-email-confirmation: false
+
+jwt:
+  expirationTime: 3600000

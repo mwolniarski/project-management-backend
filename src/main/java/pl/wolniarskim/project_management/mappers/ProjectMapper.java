@@ -17,6 +17,7 @@ public interface ProjectMapper {
 
     ProjectMapper INSTANCE = Mappers.getMapper(ProjectMapper.class);
 
+    @Mapping(target = "owner", expression = "java(UserMapper.INSTANCE.toReadModel(project.getOwner()))")
     SimpleProjectReadModel fromProject(Project project);
 
     @Mapping(target = "users", source = "project", qualifiedBy = ProjectUsersMapper.class)

@@ -13,6 +13,7 @@ public class SimpleProjectReadModel {
     private String name;
     private ProjectStatus status;
     private LocalDate startTime;
+    private UserReadModel owner;
     private LocalDate endTime;
     private String description;
 }

@@ -43,6 +43,7 @@ public class TaskGroupService {
 
         SecurityUtil.checkPermission(taskGroup.getProject(), user.getId());
 
+        taskGroupRepository.deleteAllTaskByTaskGroup(taskGroupId);
         taskGroupRepository.deleteTaskGroupById(taskGroupId);
     }
 

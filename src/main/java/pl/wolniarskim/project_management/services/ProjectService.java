@@ -3,13 +3,10 @@ package pl.wolniarskim.project_management.services;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import pl.wolniarskim.project_management.mappers.ProjectMapper;
+import pl.wolniarskim.project_management.models.*;
 import pl.wolniarskim.project_management.models.DTO.ProjectReadModel;
 import pl.wolniarskim.project_management.models.DTO.SimpleProjectReadModel;
 import pl.wolniarskim.project_management.models.DTO.ProjectWriteModel;
-import pl.wolniarskim.project_management.models.Project;
-import pl.wolniarskim.project_management.models.ProjectUser;
-import pl.wolniarskim.project_management.models.ProjectUserRole;
-import pl.wolniarskim.project_management.models.User;
 import pl.wolniarskim.project_management.repositories.ProjectRepository;
 import pl.wolniarskim.project_management.repositories.ProjectUserRepository;
 import pl.wolniarskim.project_management.repositories.UserRepository;
@@ -45,6 +42,7 @@ public class ProjectService {
     public SimpleProjectReadModel createProject(ProjectWriteModel projectWriteModel, User user){
         Project toSave = ProjectMapper.INSTANCE.toProject(projectWriteModel);
         toSave.setOwner(user);
+        toSave.setStatus(ProjectStatus.ACTIVE);
 
         Project project = projectRepository.save(toSave);
         ProjectUser projectUser = new ProjectUser(project, user, ProjectUserRole.ADMIN);

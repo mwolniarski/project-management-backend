@@ -2,6 +2,7 @@ package pl.wolniarskim.project_management.services;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import pl.wolniarskim.project_management.exceptions.EmailAlreadyConfirmedException;
 import pl.wolniarskim.project_management.exceptions.TokenExpiredException;
@@ -30,7 +31,7 @@ public class RegistrationService {
         this.emailService = emailService;
     }
 
-    public String register(RegistrationRequest request){
+    public ResponseEntity register(RegistrationRequest request){
         String token = userService.signUpUser(
                 new User(
                         request.getFirstName(),
@@ -42,10 +43,10 @@ public class RegistrationService {
         );
         if(!enableEmailConfirmation){
             userService.enableUser(request.getEmail());
-            return "Account enabled!";
+            return ResponseEntity.ok().build();
         }
         emailService.sendConfirmation(request.getEmail(), token);
-        return token;
+        return ResponseEntity.ok().build();
     }
 
     @Transactional

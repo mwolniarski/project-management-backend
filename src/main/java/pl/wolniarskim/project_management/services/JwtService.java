@@ -13,6 +13,7 @@ import pl.wolniarskim.project_management.models.User;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.stream.Collectors;
 
@@ -46,7 +47,10 @@ public class JwtService {
                 .withExpiresAt(new Date(System.currentTimeMillis() + expirationTime * 20))
                 .withIssuer(request.getRequestURL().toString())
                 .sign(Algorithm.HMAC256(secret));
-        return new TokensResponse(accessToken, refreshToken);
+        return new TokensResponse(accessToken,
+                expirationTime,
+                refreshToken,
+                (expirationTime * 20));
     }
 
     public TokensResponse refreshTokens(HttpServletRequest request) throws IOException {

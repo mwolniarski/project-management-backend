@@ -11,5 +11,9 @@ public interface TaskGroupRepository extends JpaRepository<TaskGroup, Long> {
 
     @Modifying
     @Query(nativeQuery = true, value = "delete from task_groups where id = ?1")
-    void deleteTaskGroupById(long taskGroup);
+    void deleteTaskGroupById(long taskGroupId);
+
+    @Modifying
+    @Query(nativeQuery = true, value = "delete from tasks where task_group_id = ?1")
+    void deleteAllTaskByTaskGroup(long taskGroupId);
 }
