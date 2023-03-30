@@ -14,6 +14,7 @@ import pl.wolniarskim.project_management.models.DTO.LoginCredentials;
 import pl.wolniarskim.project_management.models.DTO.TokensResponse;
 import pl.wolniarskim.project_management.models.User;
 import pl.wolniarskim.project_management.services.JwtService;
+import pl.wolniarskim.project_management.utils.CorsUtil;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -31,6 +32,7 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
     @SneakyThrows
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
+//        CorsUtil.addCorsHeaders(response);
         LoginCredentials loginCredentials = new ObjectMapper().readValue(request.getInputStream(), LoginCredentials.class);
         UsernamePasswordAuthenticationToken authenticationToken =
                 new UsernamePasswordAuthenticationToken(loginCredentials.getUsername(), loginCredentials.getPassword());
@@ -40,6 +42,7 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
     @Override
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authResult) throws IOException, ServletException {
         User user = (User) authResult.getPrincipal();
+//        CorsUtil.addCorsHeaders(response);
         TokensResponse tokensResponse = jwtService.createTokens(request,user);
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         new ObjectMapper().writeValue(response.getOutputStream(), tokensResponse);

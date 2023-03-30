@@ -19,7 +19,7 @@ public class JwtController {
         this.jwtService = jwtService;
     }
 
-    @GetMapping("/refreshToken")
+    @GetMapping("/api/refreshToken")
     public void refreshToken(HttpServletRequest request, HttpServletResponse response) throws IOException {
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         new ObjectMapper().writeValue(response.getOutputStream(), jwtService.refreshTokens(request));

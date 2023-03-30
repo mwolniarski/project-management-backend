@@ -10,10 +10,22 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.server.SecurityWebFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.filter.CorsFilter;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import pl.wolniarskim.project_management.services.JwtService;
 import pl.wolniarskim.project_management.services.UserService;
+
+import java.util.Arrays;
 
 @Configuration
 @EnableWebSecurity
@@ -24,20 +36,23 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter{
     private final UserService userService;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
-
     @Override
     protected void configure(HttpSecurity http) throws Exception {
+
+        http.headers().frameOptions().disable();
         http.sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and();
         http
                 .csrf().disable()
                 .authorizeRequests()
-                    .antMatchers("/api/registration/**", "/login", "/refreshToken")
+                    .antMatchers("/api/registration/**", "/login", "/api/refreshToken")
                     .permitAll()
 //                .antMatchers("/api/projects/**").access("hasRole('ROLE_ADMIN')")
                 .anyRequest()
                 .authenticated();
+        http.addFilterBefore(new RestCorsFilter(), CustomAuthenticationFilter.class);
+        http.addFilterBefore(new RestCorsFilter(), CustomAuthorizationFilter.class);
         http.addFilter(new CustomAuthenticationFilter(authenticationManagerBean(), jwtService));
         http.addFilter(new CustomAuthorizationFilter(authenticationManagerBean(), userService, jwtService));
     }

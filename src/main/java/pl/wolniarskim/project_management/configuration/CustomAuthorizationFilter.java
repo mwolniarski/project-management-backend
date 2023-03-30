@@ -7,6 +7,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import pl.wolniarskim.project_management.services.JwtService;
+import pl.wolniarskim.project_management.utils.CorsUtil;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
