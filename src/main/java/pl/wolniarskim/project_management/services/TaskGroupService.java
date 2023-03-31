@@ -27,7 +27,7 @@ public class TaskGroupService {
     public TaskGroupReadModel createTaskGroup(long projectId, TaskGroupWriteModel taskGroupWriteModel, User user){
         Project project = projectRepository.findById(projectId).orElseThrow();
 
-        SecurityUtil.checkPermission(project, user.getId());
+        SecurityUtil.checkWritePermission(project, user.getId());
 
         TaskGroup toSave = TaskGroupMapper.INSTANCE.toTaskGroup(taskGroupWriteModel);
         toSave.setProject(project);
@@ -41,7 +41,7 @@ public class TaskGroupService {
     public void deleteTaskGroup(long taskGroupId, User user){
         TaskGroup taskGroup = taskGroupRepository.findById(taskGroupId).orElseThrow();
 
-        SecurityUtil.checkPermission(taskGroup.getProject(), user.getId());
+        SecurityUtil.checkWritePermission(taskGroup.getProject(), user.getId());
 
         taskGroupRepository.deleteAllTaskByTaskGroup(taskGroupId);
         taskGroupRepository.deleteTaskGroupById(taskGroupId);
@@ -51,7 +51,7 @@ public class TaskGroupService {
     public TaskGroupReadModel updateTaskGroup(long taskGroupId, TaskGroupWriteModel taskGroupWriteModel, User user){
         TaskGroup taskGroup = taskGroupRepository.findById(taskGroupId).orElseThrow();
 
-        SecurityUtil.checkPermission(taskGroup.getProject(), user.getId());
+        SecurityUtil.checkWritePermission(taskGroup.getProject(), user.getId());
 
         TaskGroup toSave = TaskGroupMapper.INSTANCE.toTaskGroup(taskGroupWriteModel);
         toSave.setProject(taskGroup.getProject());

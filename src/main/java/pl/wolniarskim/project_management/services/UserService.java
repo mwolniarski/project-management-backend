@@ -6,14 +6,21 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import pl.wolniarskim.project_management.exceptions.EmailAlreadyTakenException;
 import pl.wolniarskim.project_management.models.ConfirmationToken;
 import pl.wolniarskim.project_management.models.User;
+import pl.wolniarskim.project_management.models.UserProfileImage;
+import pl.wolniarskim.project_management.repositories.UserProfileImageRepository;
 import pl.wolniarskim.project_management.repositories.UserRepository;
+import pl.wolniarskim.project_management.utils.ImageUtil;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
+
+import static pl.wolniarskim.project_management.utils.SecurityUtil.getLoggedUser;
 
 
 @Service
@@ -24,6 +31,7 @@ public class UserService implements UserDetailsService {
     private final UserRepository userRepository;
     private final ConfirmationTokenService confirmationTokenService;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
+    private final UserProfileImageRepository userProfileImageRepository;
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
@@ -68,5 +76,25 @@ public class UserService implements UserDetailsService {
                 .orElseThrow(() -> new IllegalStateException("Invalid email"));
         user.setEnabled(true);
         userRepository.save(user);
+    }
+
+    public void uploadProfileImage(MultipartFile file) throws IOException {
+        User loggedUser = getLoggedUser();
+        UserProfileImage userProfileImage = new UserProfileImage();
+        userProfileImage.setUser(loggedUser);
+        userProfileImage.setImageData(ImageUtil.compressImage(file.getBytes()));
+
+        userProfileImageRepository.save(userProfileImage);
+    }
+
+    public byte[] getUserProfileImage() {
+        User loggedUser = getLoggedUser();
+
+        Optional<UserProfileImage> dbImage = userProfileImageRepository.findUserProfileImageByUser(loggedUser);
+        byte[] image = new byte[1];
+        if(dbImage.isPresent()){
+            image = ImageUtil.decompressImage(dbImage.get().getImageData());
+        }
+        return image;
     }
 }

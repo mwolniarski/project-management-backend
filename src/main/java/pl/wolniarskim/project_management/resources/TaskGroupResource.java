@@ -1,7 +1,6 @@
 package pl.wolniarskim.project_management.resources;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.repository.query.Param;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pl.wolniarskim.project_management.models.DTO.TaskGroupReadModel;

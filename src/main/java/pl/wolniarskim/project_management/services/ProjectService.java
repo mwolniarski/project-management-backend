@@ -33,7 +33,7 @@ public class ProjectService {
     public ProjectReadModel getProjectById(long projectId, User user){
         Project project = projectRepository.findById(projectId).orElseThrow();
 
-        SecurityUtil.checkPermission(project, user.getId());
+        SecurityUtil.checkReadPermission(project, user.getId());
 
         return ProjectMapper.INSTANCE.toProjectReadModel(project);
     }
@@ -53,7 +53,7 @@ public class ProjectService {
     public SimpleProjectReadModel updateProject(long id, ProjectWriteModel projectWriteModel, User user){
         Project project = projectRepository.findById(id).orElseThrow();
 
-        SecurityUtil.checkPermission(project, user.getId());
+        SecurityUtil.checkWritePermission(project, user.getId());
 
         Project projectToSave = ProjectMapper.INSTANCE.toProject(projectWriteModel);
         projectToSave.setId(id);
@@ -65,7 +65,7 @@ public class ProjectService {
         Project project = projectRepository.findById(projectId).orElseThrow();
         User userToAdd = userRepository.findByEmail(email).orElseThrow();
 
-        SecurityUtil.checkPermission(project, loggedUser.getId());
+        SecurityUtil.checkWritePermission(project, loggedUser.getId());
 
         ProjectUser projectUser = new ProjectUser(project, userToAdd, projectUserRole);
         projectUserRepository.save(projectUser);
@@ -77,7 +77,7 @@ public class ProjectService {
     public void deleteProject(long projectId, User user){
         Project project = projectRepository.findById(projectId).orElseThrow();
 
-        SecurityUtil.checkPermission(project, user.getId());
+        SecurityUtil.checkWritePermission(project, user.getId());
 
         projectRepository.deleteById(projectId);
     }

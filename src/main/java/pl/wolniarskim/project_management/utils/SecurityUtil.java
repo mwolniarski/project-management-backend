@@ -17,13 +17,24 @@ public class SecurityUtil {
         return getUser().getId();
     }
 
-    private static boolean userHasPermission(Project project, long userId){
+    private static boolean userHasWritePermission(Project project, long userId){
         return project.getProjectUserList().stream()
-                .anyMatch(projectUser -> userHasRole(projectUser, userId));
+                .anyMatch(projectUser -> userHasWriteRole(projectUser, userId));
     }
 
-    public static void checkPermission(Project project, long userId){
-        if(!userHasPermission(project, userId)){
+    private static boolean userHasReadPermission(Project project, long userId){
+        return project.getProjectUserList().stream()
+                .anyMatch(projectUser -> userHasReadRole(projectUser, userId));
+    }
+
+    public static void checkWritePermission(Project project, long userId){
+        if(!userHasWritePermission(project, userId)){
+            throw new PermissionDeniedException();
+        }
+    }
+
+    public static void checkReadPermission(Project project, long userId){
+        if(!userHasReadPermission(project, userId)){
             throw new PermissionDeniedException();
         }
     }
@@ -31,8 +42,12 @@ public class SecurityUtil {
     private static User getUser(){
         return (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }
-    private static boolean userHasRole(ProjectUser projectUser, long userId){
+    private static boolean userHasWriteRole(ProjectUser projectUser, long userId){
         return projectUser.getUserRole() == ProjectUserRole.ADMIN &&
                 projectUser.getUser().getId() == userId;
+    }
+
+    private static boolean userHasReadRole(ProjectUser projectUser, long userId){
+        return projectUser.getUser().getId() == userId;
     }
 }
