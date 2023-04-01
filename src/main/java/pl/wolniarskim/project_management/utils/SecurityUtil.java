@@ -43,7 +43,8 @@ public class SecurityUtil {
         return (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }
     private static boolean userHasWriteRole(ProjectUser projectUser, long userId){
-        return projectUser.getUserRole() == ProjectUserRole.ADMIN &&
+        return (projectUser.getUserRole() == ProjectUserRole.ADMIN ||
+                projectUser.getUserRole() == ProjectUserRole.SUPER_ADMIN) &&
                 projectUser.getUser().getId() == userId;
     }
 

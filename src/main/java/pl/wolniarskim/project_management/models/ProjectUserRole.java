@@ -3,5 +3,6 @@ package pl.wolniarskim.project_management.models;
 public enum ProjectUserRole {
     USER,
     MANAGER,
-    ADMIN
+    ADMIN,
+    SUPER_ADMIN
 }

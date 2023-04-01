@@ -55,4 +55,11 @@ public class ProjectResource {
         projectService.addUserToProject(projectId, email, role, getLoggedUser());
         return ResponseEntity.ok().build();
     }
+
+    @DeleteMapping("/deleteUser/{projectId}")
+    public ResponseEntity<String> deleteUserFromProject(@PathVariable("projectId") long projectId,
+                                                   @Param("email") String email){
+        projectService.deleteUserFromProject(projectId, email, getLoggedUser());
+        return ResponseEntity.ok().build();
+    }
 }

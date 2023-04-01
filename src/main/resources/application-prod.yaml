@@ -1,8 +1,8 @@
 spring:
   mail:
-    host: h24.seohost.pl
-    port: 465
-
+    host: mail.projectain.com
+    port: 587
+    from: no-reply@projectain.com
   datasource:
     url:  jdbc:mariadb://projectain.com/srv53677_app
     driver-class-name: org.mariadb.jdbc.Driver
@@ -15,3 +15,7 @@ enable-email-confirmation: false
 
 jwt:
   expirationTime: 3600000
+
+confirmation:
+  frontend:
+    url: https://projectain-frontend.herokuapp.com/confirm/

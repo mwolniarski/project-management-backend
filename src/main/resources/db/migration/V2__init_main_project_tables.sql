@@ -11,7 +11,7 @@ create table projects(
 create table projects_users(
                         project_id int,
                         user_id int,
-                        user_role varchar(10),
+                        user_role varchar(12),
                         primary key(project_id, user_id)
 );
 

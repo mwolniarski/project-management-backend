@@ -2,6 +2,7 @@ package pl.wolniarskim.project_management.services;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import pl.wolniarskim.project_management.exceptions.PermissionDeniedException;
 import pl.wolniarskim.project_management.mappers.ProjectMapper;
 import pl.wolniarskim.project_management.models.*;
 import pl.wolniarskim.project_management.models.DTO.ProjectReadModel;
@@ -45,7 +46,7 @@ public class ProjectService {
         toSave.setStatus(ProjectStatus.ACTIVE);
 
         Project project = projectRepository.save(toSave);
-        ProjectUser projectUser = new ProjectUser(project, user, ProjectUserRole.ADMIN);
+        ProjectUser projectUser = new ProjectUser(project, user, ProjectUserRole.SUPER_ADMIN);
         projectUserRepository.save(projectUser);
         return ProjectMapper.INSTANCE.fromProject(project);
     }
@@ -71,7 +72,21 @@ public class ProjectService {
         projectUserRepository.save(projectUser);
     }
 
-    //todo: usunięcie wszystkich użytkowników z projektu, zadań, grup zadań (musi być w transactional)
+    @Transactional
+    public void deleteUserFromProject(long projectId, String email, User loggedUser){
+        Project project = projectRepository.findById(projectId).orElseThrow();
+
+        ProjectUser projectUser = project.getProjectUserList().stream()
+                .filter(user -> user.getUser().getEmail().equals(email)).findFirst().orElseThrow();
+
+        if(projectUser.getUserRole().equals(ProjectUserRole.SUPER_ADMIN)){
+            throw new PermissionDeniedException();
+        }
+
+        SecurityUtil.checkWritePermission(project, loggedUser.getId());
+
+        projectUserRepository.deleteUserFromProject(project.getId(), projectUser.getUser().getId());
+    }
 
     @Transactional
     public void deleteProject(long projectId, User user){
