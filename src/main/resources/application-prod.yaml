@@ -11,7 +11,7 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.MariaDB103Dialect
 
-enable-email-confirmation: false
+enable-email-confirmation: true
 
 jwt:
   expirationTime: 3600000
