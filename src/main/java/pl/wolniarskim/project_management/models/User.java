@@ -1,6 +1,7 @@
 package pl.wolniarskim.project_management.models;
 
 import lombok.*;
+import org.hibernate.annotations.Type;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -8,6 +9,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import javax.persistence.*;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
 
 @Data
@@ -21,25 +23,36 @@ public class User implements UserDetails {
     private long id;
     private String firstName;
     private String lastName;
+    private String nick;
     private String email;
     private String password;
-    @Enumerated(EnumType.STRING)
-    @Column(name = "role")
-    private UserRole userMainRole;
+    @ManyToOne
+    private Organization organization;
+
+    @Type(type="org.hibernate.type.BinaryType")
+    private String profileImage;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    private Role mainRole;
+
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "user")
+    private List<ResetPasswordToken> resetPasswordToken;
     private boolean locked = false;
     private boolean enabled = false;
 
-    public User(String firstName, String lastName, String email, String password, UserRole userMainRole) {
+    public User(String firstName, String lastName, String nick, String email, String password, Role mainRole) {
         this.firstName = firstName;
         this.lastName = lastName;
+        this.nick = nick;
         this.email = email;
         this.password = password;
-        this.userMainRole = userMainRole;
+        this.mainRole = mainRole;
     }
 
+    //todo: to delete
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        SimpleGrantedAuthority authority = new SimpleGrantedAuthority(userMainRole.name());
+        SimpleGrantedAuthority authority = new SimpleGrantedAuthority(mainRole.getName());
         return Collections.singletonList(authority);
     }
 

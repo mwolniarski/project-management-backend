@@ -19,5 +19,6 @@ public class TaskReadModel {
     private String description;
     private LocalDate dueDate;
     private UserReadModel owner;
+    private double estimatedWorkTime;
     private List<UserReadModel> watchers = new ArrayList<>();
 }

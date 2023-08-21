@@ -22,6 +22,6 @@ public class TaskGroup {
     private Project project;
 
     @EqualsAndHashCode.Exclude
-    @OneToMany(mappedBy = "taskGroup", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "taskGroup", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private Set<Task> tasks = new HashSet<>();
 }

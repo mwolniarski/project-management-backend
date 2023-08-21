@@ -6,11 +6,12 @@ import org.mapstruct.factory.Mappers;
 import pl.wolniarskim.project_management.models.DTO.UserReadModel;
 import pl.wolniarskim.project_management.models.User;
 
-@Mapper
+@Mapper(uses = RoleMapper.class)
 public interface UserMapper {
 
     //todo do zmiany na komponent
     UserMapper INSTANCE = Mappers.getMapper(UserMapper.class);
 
+    @Mapping(source = "user.mainRole", target = "role")
     UserReadModel toReadModel(User user);
 }

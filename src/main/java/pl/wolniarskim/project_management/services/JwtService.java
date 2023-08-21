@@ -2,10 +2,11 @@ package pl.wolniarskim.project_management.services;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
 import pl.wolniarskim.project_management.models.DTO.TokensResponse;
@@ -15,32 +16,28 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Date;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class JwtService {
 
     private static final String TOKEN_HEADER = "Authorization";
     private static final String TOKEN_PREFIX = "Bearer ";
-    private UserDetailsService userDetailsService;
-
+    private static final String ROLE_CLAIM_NAME = "roles";
+    private static final String ORG_ID_CLAIM_NAME = "orgId";
+    private final UserDetailsService userDetailsService;
     @Value("${jwt.secret}")
     private String secret;
 
     @Value("${jwt.expirationTime}")
     private long expirationTime;
 
-    public JwtService(UserDetailsService userDetailsService) {
-        this.userDetailsService = userDetailsService;
-    }
-
     public TokensResponse createTokens(HttpServletRequest request, User user){
         String accessToken = JWT.create()
                 .withSubject(user.getUsername())
                 .withExpiresAt(new Date(System.currentTimeMillis() + expirationTime))
                 .withIssuer(request.getRequestURL().toString())
-                .withClaim("roles", user.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.toList()))
                 .sign(Algorithm.HMAC256(secret));
         String refreshToken = JWT.create()
                 .withSubject(user.getUsername())

@@ -3,6 +3,7 @@ package pl.wolniarskim.project_management.models;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import javax.persistence.*;
 import java.time.LocalDate;
@@ -18,6 +19,7 @@ public class Task {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @ToString.Exclude
     private long id;
 
     private String name;
@@ -27,19 +29,28 @@ public class Task {
     private TaskPriority priority;
     private String description;
     private LocalDate dueDate;
+    private double estimatedWorkTime;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
+    @ToString.Exclude
     private TaskGroup taskGroup;
 
     @ManyToOne
+    @ToString.Exclude
     private User taskOwner;
 
     @EqualsAndHashCode.Exclude
-    @ManyToMany
+    @ToString.Exclude
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "users_tasks",
             joinColumns = { @JoinColumn(name = "task_id") },
             inverseJoinColumns = { @JoinColumn(name = "user_id") }
     )
     private Set<User> watchers = new HashSet<>();
+
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    @OneToMany(mappedBy = "task", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private Set<TaskHistory> taskHistories = new HashSet<>();
 }

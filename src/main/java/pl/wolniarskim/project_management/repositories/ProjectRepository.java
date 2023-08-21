@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import pl.wolniarskim.project_management.models.Project;
+import pl.wolniarskim.project_management.models.Task;
 
 import java.util.List;
 
@@ -17,4 +18,6 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
     @Modifying
     @Query(nativeQuery = true, value = "delete from projects where id = ?1")
     void deleteProjectById(long projectId);
+
+    List<Project> findByOrganizationOrgId(long orgId);
 }

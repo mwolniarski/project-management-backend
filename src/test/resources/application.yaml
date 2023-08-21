@@ -1,11 +1,10 @@
 spring:
-  jpa:
-    spring.jpa.database-platform: org.hibernate.dialect.H2Dialect
   mail:
-    host: mail.instacloud.biz
+    host: test
     port: 587
-    username: as8
-    password: cx3aJ8KbEK
+    username: test
+    password: test
+    from: test@wp.pl
 
     properties:
       mail:
@@ -29,3 +28,14 @@ jwt:
   secret: secret
 server:
   port: 8080
+
+frontend.url: http://localhost:4200
+
+confirmation:
+  frontend:
+    url: ${frontend.url}/confirm/
+
+reset:
+  password:
+    frontend:
+      url: ${frontend.url}/reset/password/

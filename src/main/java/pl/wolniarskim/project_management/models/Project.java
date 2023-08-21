@@ -25,9 +25,11 @@ public class Project {
     private LocalDate endTime;
     private String description;
     @ManyToOne
+    private Organization organization;
+    @ManyToOne
     private User owner;
     @EqualsAndHashCode.Exclude
-    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Set<ProjectUser> projectUserList = new HashSet<>();
 
     @EqualsAndHashCode.Exclude

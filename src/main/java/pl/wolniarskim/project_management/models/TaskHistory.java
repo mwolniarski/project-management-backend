@@ -4,20 +4,22 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
 @Entity
-@Table(name = "user_profile_images")
-public class UserProfileImage {
+@Table(name = "task_histories")
+public class TaskHistory {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    @ManyToOne
-    private User user;
+    private long id;
 
-    @Lob
-    @Column(name = "image_data", length = 1000)
-    private byte[] imageData;
+    private LocalDateTime createdAt;
+
+    @ManyToOne
+    private Task task;
+
+    private String description;
 }

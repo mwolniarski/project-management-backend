@@ -2,10 +2,11 @@ package pl.wolniarskim.project_management.utils;
 
 import org.springframework.security.core.context.SecurityContextHolder;
 import pl.wolniarskim.project_management.exceptions.PermissionDeniedException;
-import pl.wolniarskim.project_management.models.Project;
-import pl.wolniarskim.project_management.models.ProjectUser;
-import pl.wolniarskim.project_management.models.ProjectUserRole;
-import pl.wolniarskim.project_management.models.User;
+import pl.wolniarskim.project_management.models.*;
+
+import java.util.Objects;
+
+import static pl.wolniarskim.project_management.models.Permission.PermissionEnum.ALLOW_ALL;
 
 public class SecurityUtil {
 
@@ -17,38 +18,36 @@ public class SecurityUtil {
         return getUser().getId();
     }
 
-    private static boolean userHasWritePermission(Project project, long userId){
-        return project.getProjectUserList().stream()
-                .anyMatch(projectUser -> userHasWriteRole(projectUser, userId));
-    }
-
-    private static boolean userHasReadPermission(Project project, long userId){
-        return project.getProjectUserList().stream()
-                .anyMatch(projectUser -> userHasReadRole(projectUser, userId));
-    }
-
-    public static void checkWritePermission(Project project, long userId){
-        if(!userHasWritePermission(project, userId)){
-            throw new PermissionDeniedException();
-        }
-    }
-
-    public static void checkReadPermission(Project project, long userId){
-        if(!userHasReadPermission(project, userId)){
-            throw new PermissionDeniedException();
-        }
-    }
-
-    private static User getUser(){
+    private static User getUser() {
         return (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }
-    private static boolean userHasWriteRole(ProjectUser projectUser, long userId){
-        return (projectUser.getUserRole() == ProjectUserRole.ADMIN ||
-                projectUser.getUserRole() == ProjectUserRole.SUPER_ADMIN) &&
-                projectUser.getUser().getId() == userId;
+
+    public static void checkUserPermission(Permission.PermissionEnum permissionEnum){
+        User loggedUser = getLoggedUser();
+        if(loggedUser.getMainRole().getPermissions().stream().noneMatch(permission -> permission.getName() == permissionEnum || permission.getName() == ALLOW_ALL)){
+            throw new PermissionDeniedException();
+        }
     }
 
-    private static boolean userHasReadRole(ProjectUser projectUser, long userId){
-        return projectUser.getUser().getId() == userId;
+    public static boolean isUserHavingPermission(Permission.PermissionEnum permissionEnum){
+        return getLoggedUser().getMainRole().getPermissions().stream().anyMatch(permission -> permission.getName() == permissionEnum || permission.getName() == ALLOW_ALL);
+    }
+
+    public static void checkIfUserIsPartOfOrganization(long organizationId){
+        User loggedUser = getLoggedUser();
+        if(Objects.isNull(loggedUser.getOrganization()) || loggedUser.getOrganization().getOrgId() != organizationId){
+            throw new PermissionDeniedException();
+        }
+    }
+
+    //todo: dodać to do wszystkich edpointów poniżej projektu: projects, tasks, taskgroup, comment
+    public static void checkIfUserIsPartOfProject(Project project){
+        if(project.getProjectUserList().stream()
+                .noneMatch(projectUser ->
+                        projectUser.getUser().getEmail().equals(getLoggedUser().getEmail()
+                        )
+                )){
+            throw new PermissionDeniedException();
+        }
     }
 }

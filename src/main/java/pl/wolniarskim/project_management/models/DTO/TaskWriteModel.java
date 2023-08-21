@@ -15,4 +15,6 @@ public class TaskWriteModel {
     private TaskPriority priority;
     private String description;
     private LocalDate dueDate;
+    private double estimatedWorkTime;
+    private OwnerWriteModel owner;
 }

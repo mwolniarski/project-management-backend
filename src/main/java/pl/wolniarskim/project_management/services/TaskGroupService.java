@@ -6,6 +6,7 @@ import pl.wolniarskim.project_management.mappers.TaskGroupMapper;
 import pl.wolniarskim.project_management.mappers.TaskMapper;
 import pl.wolniarskim.project_management.models.DTO.TaskGroupReadModel;
 import pl.wolniarskim.project_management.models.DTO.TaskGroupWriteModel;
+import pl.wolniarskim.project_management.models.Permission;
 import pl.wolniarskim.project_management.models.Project;
 import pl.wolniarskim.project_management.models.TaskGroup;
 import pl.wolniarskim.project_management.models.User;
@@ -16,6 +17,8 @@ import pl.wolniarskim.project_management.utils.SecurityUtil;
 import javax.transaction.Transactional;
 import java.util.List;
 
+import static pl.wolniarskim.project_management.models.Permission.PermissionEnum.*;
+
 @Service
 @RequiredArgsConstructor
 public class TaskGroupService {
@@ -24,10 +27,11 @@ public class TaskGroupService {
     private final ProjectRepository projectRepository;
 
     @Transactional
-    public TaskGroupReadModel createTaskGroup(long projectId, TaskGroupWriteModel taskGroupWriteModel, User user){
+    public TaskGroupReadModel createTaskGroup(long projectId, TaskGroupWriteModel taskGroupWriteModel){
         Project project = projectRepository.findById(projectId).orElseThrow();
 
-        SecurityUtil.checkWritePermission(project, user.getId());
+        SecurityUtil.checkIfUserIsPartOfOrganization(project.getOrganization().getOrgId());
+        SecurityUtil.checkUserPermission(TASK_GROUP_CREATE);
 
         TaskGroup toSave = TaskGroupMapper.INSTANCE.toTaskGroup(taskGroupWriteModel);
         toSave.setProject(project);
@@ -38,20 +42,22 @@ public class TaskGroupService {
     }
 
     @Transactional
-    public void deleteTaskGroup(long taskGroupId, User user){
+    public void deleteTaskGroup(long taskGroupId){
         TaskGroup taskGroup = taskGroupRepository.findById(taskGroupId).orElseThrow();
 
-        SecurityUtil.checkWritePermission(taskGroup.getProject(), user.getId());
+        SecurityUtil.checkIfUserIsPartOfOrganization(taskGroup.getProject().getOrganization().getOrgId());
+        SecurityUtil.checkUserPermission(TASK_GROUP_DELETE);
 
         taskGroupRepository.deleteAllTaskByTaskGroup(taskGroupId);
         taskGroupRepository.deleteTaskGroupById(taskGroupId);
     }
 
     @Transactional
-    public TaskGroupReadModel updateTaskGroup(long taskGroupId, TaskGroupWriteModel taskGroupWriteModel, User user){
+    public TaskGroupReadModel updateTaskGroup(long taskGroupId, TaskGroupWriteModel taskGroupWriteModel){
         TaskGroup taskGroup = taskGroupRepository.findById(taskGroupId).orElseThrow();
 
-        SecurityUtil.checkWritePermission(taskGroup.getProject(), user.getId());
+        SecurityUtil.checkIfUserIsPartOfOrganization(taskGroup.getProject().getOrganization().getOrgId());
+        SecurityUtil.checkUserPermission(TASK_GROUP_UPDATE);
 
         TaskGroup toSave = TaskGroupMapper.INSTANCE.toTaskGroup(taskGroupWriteModel);
         toSave.setProject(taskGroup.getProject());

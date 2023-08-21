@@ -11,6 +11,7 @@ import pl.wolniarskim.project_management.models.Task;
 public interface TaskMapper {
 
     TaskMapper INSTANCE = Mappers.getMapper(TaskMapper.class);
+    @Mapping(target = "owner", source = "taskOwner")
     TaskReadModel toReadModel(Task task);
 
     @Mapping(target = "name", source = "name")

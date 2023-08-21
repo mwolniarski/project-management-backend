@@ -8,17 +8,26 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import pl.wolniarskim.project_management.exceptions.EmailAlreadyTakenException;
+import pl.wolniarskim.project_management.exceptions.PermissionDeniedException;
+import pl.wolniarskim.project_management.exceptions.TokenExpiredException;
+import pl.wolniarskim.project_management.mappers.OrganizationMapper;
 import pl.wolniarskim.project_management.models.ConfirmationToken;
+import pl.wolniarskim.project_management.models.DTO.ProfileDetails;
+import pl.wolniarskim.project_management.models.DTO.ProfileDetailsWriteModel;
+import pl.wolniarskim.project_management.models.Permission;
+import pl.wolniarskim.project_management.models.ResetPasswordToken;
 import pl.wolniarskim.project_management.models.User;
-import pl.wolniarskim.project_management.models.UserProfileImage;
-import pl.wolniarskim.project_management.repositories.UserProfileImageRepository;
+import pl.wolniarskim.project_management.repositories.ResetPasswordTokenRepository;
 import pl.wolniarskim.project_management.repositories.UserRepository;
-import pl.wolniarskim.project_management.utils.ImageUtil;
 
+import javax.transaction.Transactional;
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.Base64;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import static pl.wolniarskim.project_management.utils.SecurityUtil.getLoggedUser;
 
@@ -27,11 +36,13 @@ import static pl.wolniarskim.project_management.utils.SecurityUtil.getLoggedUser
 @AllArgsConstructor
 public class UserService implements UserDetailsService {
 
-    private final static String USER_NOT_FOUND = "User with email %s not found";
+    private static final String USER_NOT_FOUND = "User with email %s not found";
     private final UserRepository userRepository;
     private final ConfirmationTokenService confirmationTokenService;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
-    private final UserProfileImageRepository userProfileImageRepository;
+    private final OrganizationMapper organizationMapper;
+    private final ResetPasswordTokenRepository resetPasswordTokenRepository;
+    private final EmailService emailService;
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
@@ -41,6 +52,7 @@ public class UserService implements UserDetailsService {
                 ));
     }
 
+    @Transactional
     public String signUpUser(User user){
         Optional<User> userFromRepo = userRepository.findByEmail(user.getEmail());
         if(userFromRepo.isPresent()){
@@ -71,6 +83,41 @@ public class UserService implements UserDetailsService {
         return token;
     }
 
+    @Transactional
+    public void changePassword(String newPassword, String resetPasswordToken) {
+        Optional<ResetPasswordToken> byToken = resetPasswordTokenRepository.findByToken(resetPasswordToken);
+        if(byToken.isEmpty()){
+            throw new PermissionDeniedException();
+        }
+
+        ResetPasswordToken resetToken = byToken.get();
+        if(LocalDateTime.now().isAfter(resetToken.getExpiredAt())){
+            throw new TokenExpiredException();
+        }
+
+        User user = resetToken.getUser();
+        user.setPassword(bCryptPasswordEncoder.encode(newPassword));
+
+        userRepository.save(user);
+
+        resetToken.setUsedAt(LocalDateTime.now());
+        resetPasswordTokenRepository.save(resetToken);
+    }
+
+    public void createResetToken(String email){
+        Optional<User> byEmail = userRepository.findByEmail(email);
+        if(byEmail.isPresent()){
+            ResetPasswordToken resetPasswordToken = new ResetPasswordToken();
+            resetPasswordToken.setToken(UUID.randomUUID().toString());
+            resetPasswordToken.setCreatedAt(LocalDateTime.now());
+            resetPasswordToken.setExpiredAt(LocalDateTime.now().plusHours(1));
+            resetPasswordToken.setUser(byEmail.get());
+            resetPasswordTokenRepository.save(resetPasswordToken);
+
+            emailService.sendResetPassword(email, resetPasswordToken.getToken());
+        }
+    }
+
     public void enableUser(String email){
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalStateException("Invalid email"));
@@ -78,23 +125,44 @@ public class UserService implements UserDetailsService {
         userRepository.save(user);
     }
 
-    public void uploadProfileImage(MultipartFile file) throws IOException {
+    public ProfileDetails uploadProfileImage(MultipartFile file) throws IOException {
         User loggedUser = getLoggedUser();
-        UserProfileImage userProfileImage = new UserProfileImage();
-        userProfileImage.setUser(loggedUser);
-        userProfileImage.setImageData(ImageUtil.compressImage(file.getBytes()));
+        loggedUser.setProfileImage(Base64.getEncoder().encodeToString(file.getBytes()));
 
-        userProfileImageRepository.save(userProfileImage);
+        userRepository.save(loggedUser);
+
+        return ProfileDetails.builder()
+                .profileImage(loggedUser.getProfileImage())
+                .lastName(loggedUser.getLastName())
+                .firstName(loggedUser.getFirstName())
+                .nick(loggedUser.getNick())
+                .build();
     }
 
-    public byte[] getUserProfileImage() {
+    public ProfileDetails getProfileDetails() {
         User loggedUser = getLoggedUser();
 
-        Optional<UserProfileImage> dbImage = userProfileImageRepository.findUserProfileImageByUser(loggedUser);
-        byte[] image = new byte[1];
-        if(dbImage.isPresent()){
-            image = ImageUtil.decompressImage(dbImage.get().getImageData());
+        ProfileDetails.ProfileDetailsBuilder detailsBuilder = ProfileDetails.builder()
+                .profileImage(loggedUser.getProfileImage())
+                .lastName(loggedUser.getLastName())
+                .firstName(loggedUser.getFirstName())
+                .nick(loggedUser.getNick())
+                .permissions(loggedUser.getMainRole().getPermissions().stream().map(Permission::getName).collect(Collectors.toList()));
+
+        if(Objects.nonNull(loggedUser.getOrganization())){
+            detailsBuilder.organization(organizationMapper.toOrganizationReadModel(loggedUser.getOrganization()));
         }
-        return image;
+
+        return detailsBuilder.build();
     }
+
+    public void saveUserProfile(ProfileDetailsWriteModel profileDetailsWriteModel) {
+        User loggedUser = getLoggedUser();
+
+        loggedUser.setFirstName(profileDetailsWriteModel.getFirstName());
+        loggedUser.setLastName(profileDetailsWriteModel.getLastName());
+
+        userRepository.save(loggedUser);
+    }
+
 }

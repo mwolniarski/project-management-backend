@@ -1,10 +1,21 @@
+frontend.url: http://localhost:4200
+
+reset:
+  password:
+    frontend:
+      url: ${frontend.url}/reset/password/
+
 spring:
-  jpa:
-    spring.jpa.database-platform: org.hibernate.dialect.H2Dialect
-    show-sql: true
+  datasource:
+    password: root
+    username: root
+    url: jdbc:postgresql://localhost:5432/task_management
   mail:
-    host: mail.projectain.com
+    host: smtp.gmail.com
     port: 587
+    username: task.management.mw.inzynierka@gmail.com
+    password: jbrbzwlomlakvtzc
+    from: task.management.mw.inzynierka@gmail.com
 
     properties:
       mail:
@@ -24,6 +35,8 @@ spring:
 confirmation:
   frontend:
     url: http://localhost:4200/confirm/
+
+enable-email-confirmation: true
 
 jwt:
   expirationTime: 3600000
