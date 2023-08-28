@@ -102,6 +102,6 @@ class RegistrationControllerTest {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().is(200));
         //then
-        Assertions.assertEquals(3, roleRepository.count());
+        Assertions.assertEquals(4, roleRepository.count());
     }
 }

@@ -6,8 +6,8 @@ create table task_time_entry(
     description varchar(120)
 );
 
-alter table task_time_entry add foreign key(task_id) references tasks(id);
-alter table task_time_entry add foreign key(user_id) references users(id);
+alter table task_time_entry add foreign key(task_id) references tasks(id) on delete cascade;
+alter table task_time_entry add foreign key(user_id) references users(id) on delete cascade;
 
 alter table tasks add column estimated_work_time decimal(20, 2);
 

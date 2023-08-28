@@ -9,6 +9,7 @@ import pl.wolniarskim.project_management.mappers.TaskTimeEntryMapper;
 import pl.wolniarskim.project_management.models.*;
 import pl.wolniarskim.project_management.models.DTO.TaskTimeEntryReadModel;
 import pl.wolniarskim.project_management.models.DTO.TaskTimeEntryWriteModel;
+import pl.wolniarskim.project_management.models.DTO.TimeEntryGenerateDTO;
 import pl.wolniarskim.project_management.repositories.ProjectRepository;
 import pl.wolniarskim.project_management.repositories.TaskRepository;
 import pl.wolniarskim.project_management.repositories.TaskTimeEntryRepository;
@@ -55,18 +56,20 @@ public class TaskTimeEntryService {
     }
 
     public List<TaskTimeEntryReadModel> getTimeEntries(long projectId){
+        return getTimeEntriesFromDatabase(projectId)
+                .stream().map(taskTimeEntryMapper::fromTimeEntry)
+                .collect(Collectors.toList());
+    }
+
+    public List<TaskTimeEntry> getTimeEntriesFromDatabase(long projectId){
         Project project = projectRepository.findById(projectId).orElseThrow();
         SecurityUtil.checkIfUserIsPartOfOrganization(project.getOrganization().getOrgId());
 
         if(isUserHavingPermission(TIME_ENTRY_READ_ALL)){
-            return taskTimeEntryRepository.findAllByProjectId(projectId).stream()
-                    .map(taskTimeEntryMapper::fromTimeEntry)
-                    .collect(Collectors.toList());
+            return taskTimeEntryRepository.findAllByProjectId(projectId);
         }
         else{
-            return taskTimeEntryRepository.findAllByUserIdAndProjectId(getLoggedUserId(), projectId).stream()
-                    .map(taskTimeEntryMapper::fromTimeEntry)
-                    .collect(Collectors.toList());
+            return taskTimeEntryRepository.findAllByUserIdAndProjectId(getLoggedUserId(), projectId);
         }
     }
 
@@ -90,16 +93,22 @@ public class TaskTimeEntryService {
         String headerValue = "attachment; filename=users_" + currentDateTime + ".csv";
         response.setHeader(headerKey, headerValue);
 
-        List<TaskTimeEntryReadModel> timeEntries = getTimeEntries(projectId);
+        List<TaskTimeEntry> timeEntries = getTimeEntriesFromDatabase(projectId);
 
         ICsvBeanWriter csvWriter = new CsvBeanWriter(response.getWriter(), CsvPreference.STANDARD_PREFERENCE);
-        String[] csvHeader = {"Hours spent", "Time description"};
-        String[] nameMapping = {"hoursSpent", "description"};
+        String[] csvHeader = {"Hours spent", "Time description", "User email", "Task name"};
+        String[] nameMapping = {"hoursSpent", "description", "email", "taskName"};
 
         csvWriter.writeHeader(csvHeader);
 
-        for (TaskTimeEntryReadModel timeEntry : timeEntries) {
-            csvWriter.write(timeEntry, nameMapping);
+
+
+        for (TaskTimeEntry timeEntry : timeEntries) {
+            csvWriter.write(new TimeEntryGenerateDTO(
+                    timeEntry.getHoursSpent(),
+                    timeEntry.getDescription(),
+                    timeEntry.getUser().getEmail(),
+                    timeEntry.getTask().getName()), nameMapping);
         }
 
         csvWriter.close();

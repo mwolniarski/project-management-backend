@@ -25,7 +25,7 @@ public class Permission {
     public Permission(PermissionEnum permissionEnum){
         this.name = permissionEnum.name();
     }
-    //todo: agregacja permisji
+
     public enum PermissionEnum{
         ORGANIZATION_DELETE,
         ORGANIZATION_UPDATE,
